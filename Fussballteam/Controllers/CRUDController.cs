@@ -1,12 +1,17 @@
 ﻿using Fussballteam.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 using Fussballteam.Services;
 using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using OfficeOpenXml.Drawing;
 using System.Security.Claims;
 
 namespace Fussballteam.Controllers
 {
     public class PlayerController : Controller
+
+
     {
         private readonly ILogger<HomeController> _logger;
         private string fileinfo;
@@ -20,20 +25,20 @@ namespace Fussballteam.Controllers
             _logger = logger;
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
 
-            fileinfo = ".\\Models\\Fussballteam.xlsx";
+            fileinfo = "C:\\Users\\frick\\OneDrive\\Dokumente\\Fussballteam.xlsx";
             package = new ExcelPackage(path: this.fileinfo);
-        }
 
-        [HttpGet]
-        public ActionResult DeletePlayer()
+        }
+        
+
+        public ActionResult Index3()
         {
             UserName = User.FindFirstValue(ClaimTypes.Email);
             players = Excel.Reader(package, UserName);
             return View(players);
         }
 
-        [HttpGet]
-        public ActionResult CreatePlayer()
+        public ActionResult Index4()
         {
             PlayerModel player = new PlayerModel();
             return View(player);
@@ -46,7 +51,7 @@ namespace Fussballteam.Controllers
             int row = Excel.FindFirstEmptyRow(package, UserName);
             Excel.Writer(package, UserName, Name, Position, Age, Salary, row);
 
-            return RedirectToAction(nameof(HomeController.Index), "Home");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -63,44 +68,23 @@ namespace Fussballteam.Controllers
             {
                 return false;
             }
+
         }
 
-        [HttpGet]
-        public ActionResult Update()
+        public ActionResult Update(string n)
         {
-            return View();
+            UserName = User.FindFirstValue(ClaimTypes.Email);
+            players = Excel.Reader(package, UserName);
+            var x = players.First(x => x.Name == n);
+            return View(x);
         }
 
         [HttpPost]
         public ActionResult UpdatePlayer(PlayerModel player)
         {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            players = Excel.Reader(package, UserName);
             int row = Excel.FindRowOfPlayer(package, UserName, player.Name);
             Excel.Writer(package, UserName, player.Name, player.Position, player.Age, player.Salary, row);
-            return RedirectToAction(nameof(HomeController.Index), "Home");
+            return RedirectToAction("Index3", "Home");
         }
-
-        public class Foo
-        {
-            public int a { get; set; }
-            public int b { get; set; }
-
-        }
-
-        [HttpPost]
-        public string Testfunction([FromBody]Foo data)
-        {
-            var a = data.a;
-            var b = data.b;        
-            Excel.Writer2(package, a, b);
-            string res = Excel.Reader2(package);
-
-            return res;
-        }
-
-
-
     }
 }
-

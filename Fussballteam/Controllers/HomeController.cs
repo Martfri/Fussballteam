@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using Fussballteam.Services;
 using OfficeOpenXml;
-using OfficeOpenXml.Style;
-using OfficeOpenXml.Drawing;
 using System.Security.Claims;
 
 namespace Fussballteam.Controllers
@@ -21,10 +19,9 @@ namespace Fussballteam.Controllers
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
-            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-            fileinfo = "C:\\Users\\frick\\OneDrive\\Dokumente\\Fussballteam.xlsx";
-            package = new ExcelPackage(path: this.fileinfo);
-            
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;            
+            fileinfo = ".\\Models\\Fussballteam.xlsx";
+            package = new ExcelPackage(path: fileinfo);            
         }
 
         [HttpGet]
@@ -32,31 +29,23 @@ namespace Fussballteam.Controllers
         {
             UserName = User.FindFirstValue(ClaimTypes.Email);
             players = Excel.Reader(package, UserName);
-            
-            //var charts = Excel.Charts(package);
-            //Console.WriteLine(charts);
-            ////TempData["First"] = charts;
-            //ViewBag.Message = charts.As.Picture;
-            //ViewBag.Message = charts;          
-
-             //Console.WriteLine(players.GroupBy(c => c.Age).Select(c => c.FirstOrDefault()).ToList());
-            //Console.WriteLine(players.Select(c => c.Age).ToList());
 
             return View(players);
         }
 
         [HttpGet]
-        public IActionResult Index1()
+        public IActionResult Statistics()
         {         
             return View();
         }
-
         
         public IActionResult check(string button)
         {
             UserName = User.FindFirstValue(ClaimTypes.Email);
             var salaries = Excel.AverageSalary(package, UserName);
             var age = Excel.AverageAge(package, UserName);
+            var highestSalary = Excel.highestSalary(package, UserName);
+            var lowestSalary = Excel.lowestSalary(package, UserName);
 
             if (button == "Get Average Salary")
             {
@@ -68,87 +57,53 @@ namespace Fussballteam.Controllers
                 TempData["ButtonValue2"] = (age).ToString();
             }
 
+            else if (button == "Get Player with highest Salary")
+            {
+                TempData["ButtonValue3"] = highestSalary.ToString();
+            }
+
+            else if (button == "Get Player with lowest Salary")
+            {
+                TempData["ButtonValue4"] = lowestSalary.ToString();
+            }
+
             else {
                 TempData["ButtonValue"] = "Error";
                 TempData["ButtonValue2"] = "Error";
-                    }
+                TempData["ButtonValue3"] = "Error";
+                TempData["ButtonValue4"] = "Error";
+            }
 
-            return RedirectToAction("Index1");
-
+            return RedirectToAction("Statistics");
         }
-
 
         [HttpGet]
-        public IActionResult Index2()
+        public IActionResult Visualizations()
         {
             UserName = User.FindFirstValue(ClaimTypes.Email);
             players = Excel.Reader(package, UserName);
+            DashboardModel dashboard = new DashboardModel();
 
-            //TempData["1"] = players.GroupBy(c => c.Age).Select(c => c.FirstOrDefault()).ToList();
-            //TempData["2"] = players.GroupBy(c => c.Age).Select(c => c.ToList().Count).ToArray();
-            //ViewBag.Message = players.GroupBy(c => c.Age).Select(c => c.ToList().Count).ToArray();
-            //Console.WriteLine(String.Join(" ", x));
+            dashboard.Goalkeepers_count = players.Where(c => c.Position == "Goalkeeper").Count();
+            dashboard.Centreback_count = players.Where(c => c.Position == "Centre-back").Count();
+            dashboard.Leftback_count = players.Where(c => c.Position == "Left-back").Count();
+            dashboard.Rightback_count = players.Where(c => c.Position == "Right-back").Count();
+            dashboard.Defensive_Midfielder_count = players.Where(c => c.Position == "Defensive Midfielder").Count();
+            dashboard.Central_Midfielder_count = players.Where(c => c.Position == "Central Midfielder").Count();
+            dashboard.Playmaker_count = players.Where(c => c.Position == "Playmaker").Count();
+            dashboard.Leftwinger_count = players.Where(c => c.Position == "Left-winger").Count();
+            dashboard.Rightwinger_count = players.Where(c => c.Position == "Right-winger").Count();
+            dashboard.Centre_forward_count = players.Where(c => c.Position == "Centre-forward").Count();
 
-            return View(players); 
+            dashboard.SalaryClass1_count = players.Where(c => Convert.ToInt32(c.Salary) >= 0 && Convert.ToInt32(c.Salary) <= 5000).Count();
+            dashboard.SalaryClass2_count = players.Where(c => Convert.ToInt32(c.Salary) >= 5000 && Convert.ToInt32(c.Salary) <= 25000).Count();
+            dashboard.SalaryClass3_count = players.Where(c => Convert.ToInt32(c.Salary) >= 25000 && Convert.ToInt32(c.Salary) <= 50000).Count();
+            dashboard.SalaryClass4_count = players.Where(c => Convert.ToInt32(c.Salary) >= 50000 && Convert.ToInt32(c.Salary) <= 100000).Count();
+            dashboard.SalaryClass5_count = players.Where(c => Convert.ToInt32(c.Salary) >= 100000).Count();
+
+            return View(dashboard);           
         }
         
-        public ActionResult Index3()
-        {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            players = Excel.Reader(package, UserName);
-            return View(players);
-        }
-
-        public ActionResult Index4()
-        {
-            PlayerModel player = new PlayerModel();
-            return View(player);
-        }
-
-        [HttpPost]
-        public ActionResult CreatePlayer(string Name, string Position, string Age, string Salary)
-        {            
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            int row = Excel.FindFirstEmptyRow(package, UserName);
-            Excel.Writer(package, UserName, Name, Position, Age, Salary, row);
-            
-            return RedirectToAction("Index", "Home");
-        }
-
-        [HttpPost]
-        public bool Delete(string name)
-        {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            try
-            {
-                int row = Excel.FindRowOfPlayer(package, UserName, name);
-                Excel.DeletePlayer(package, UserName, row);
-                return true;
-            }
-            catch (System.Exception)
-            {
-                return false;
-            }
-            
-        }
-
-        public ActionResult Update(string n)
-        {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            players = Excel.Reader(package, UserName);
-            var x = players.First(x => x.Name == n);
-            return View(x);
-        }
-
-        [HttpPost]
-        public ActionResult UpdatePlayer(PlayerModel player)
-        {
-            int row = Excel.FindRowOfPlayer(package, UserName, player.Name);
-            Excel.Writer(package, UserName, player.Name, player.Position, player.Age, player.Salary, row);
-            return RedirectToAction("Index3", "Home");
-        }
-
-
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

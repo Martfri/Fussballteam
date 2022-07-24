@@ -1,37 +1,19 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using OfficeOpenXml.Drawing;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
+﻿using OfficeOpenXml;
 using Fussballteam.Models;
 
 namespace Fussballteam.Services
 {
-    // TODO: Interface
+    
     class ExcelService
     {
-        //private string fileinfo;
-        //private ExcelPackage package;
         private List<PlayerModel> players = new List<PlayerModel>();
-
-        //public ExcelService()
-        //{
-        //    ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
-        //    fileinfo = "C:\\Users\\frick\\OneDrive\\Dokumente\\Fussballteam.xlsx";
-        //    package = new ExcelPackage(path: this.fileinfo);
-        //}
-
-        // TODO Rename
+                
         public List<PlayerModel> Reader(ExcelPackage package, String UserName)
         {
-            //ExcelWorksheet ws = this.package.Workbook.Worksheets["Arbeit"];
             ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
             if (ws != null)
             {
-
                 PlayerModel player;
-                // TODO Konstanten!
                 int row = 5;
                 do
                 {
@@ -44,28 +26,19 @@ namespace Fussballteam.Services
                     };
 
                     if (player.isValid())
+                    {
                         players.Add(player);
+                    }
 
                     row++;
 
                 } while (player.isValid());
-
             }
             return players;
-
         }
 
-        // TODO Rename
         public decimal AverageSalary(ExcelPackage package, String UserName)
         {
-            //int avg = 0;
-            //PropertyInfo[] properties = typeof(PlayerModel).GetType().GetProperties();
-
-            //List<string> Salaries = Players.Select(o => o.Salary).ToList();
-
-            //players.Average(w => Convert.ToDecimal(w.Salary));
-
-            //return avg; 
             ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
             if (ws != null)
             {
@@ -76,12 +49,10 @@ namespace Fussballteam.Services
             {
                 return 999999999;
             }
-
         }
 
         public decimal AverageAge(ExcelPackage package, String UserName)
         {
-
             ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
             if (ws != null)
             {
@@ -92,44 +63,43 @@ namespace Fussballteam.Services
             {
                 return 999999999;
             }
-
         }
 
-        //System.InvalidCastException: 'Unable to cast object of type '
-        //    OfficeOpenXml.Drawing.Chart.ChartEx.ExcelHistogramChart' to type 'OfficeOpenXml.Drawing.ExcelPicture'.'
+        public string highestSalary(ExcelPackage package, String UserName)
+        {
+            ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
+            if (ws != null)
+            {
+                var max = (ws.Cells["F68"].Value);
+                return Convert.ToString(max);
+            }
+            else
+            {
+                return "Error";
+            }
+        }
 
-        //public String Charts(ExcelPackage package)
-        //{
-        //    ExcelWorksheet worksheet = package.Workbook.Worksheets["Charts"];
-        //    List<ExcelDrawing> charts = new List<ExcelDrawing>();
-
-        //    byte[] imageArray = worksheet.Drawings[0].As.Picture.Image.ImageBytes;
-
-        //    string base64ImageRepresentation = Convert.ToBase64String(imageArray);
-
-        //    var x = "ds";
-        //    List<ExcelPicture> pic = new List<ExcelPicture>();
-        //    pic.Append(x[0] as ExcelPicture);
-        //    foreach (ExcelDrawing dw in x)
-        //    {
-        //        var z = dw as ExcelPicture;
-        //        pic.Add(z);
-        //    }
-        //    return x;
-        //}
-
-
-    
+        public string lowestSalary(ExcelPackage package, String UserName)
+        {
+            ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
+            if (ws != null)
+            {
+                var min = (ws.Cells["F65"].Value);
+                return Convert.ToString(min);
+            }
+            else
+            {
+                return "Error";
+            }
+        }
 
         public int FindFirstEmptyRow(ExcelPackage package, String UserName)
         {
-            //ExcelWorksheet ws = this.package.Workbook.Worksheets["Arbeit"];
             int row = -1;
             ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
             if (ws != null)
             {
                 row = 5;
-                // TODO Konstanten!
 
                 do
                 {
@@ -158,29 +128,25 @@ namespace Fussballteam.Services
 
         public int FindRowOfPlayer(ExcelPackage package, String UserName, string name)
         {
-            //ExcelWorksheet ws = this.package.Workbook.Worksheets["Arbeit"];
             int row = -1;
             ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
             if (ws != null)
             {
                 row = 5;
-                // TODO Konstanten!
+
                 do
                 {
                     {
                         row++;
-
                     };
 
                 } while ((ws.Cells[row, 1].Value ?? string.Empty).ToString().Trim() != name);
-
             }
             return row;
         }
 
         public bool DeletePlayer(ExcelPackage package, String UserName, int row)
         {
-
             ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
             if (ws != null)
             {
@@ -194,8 +160,29 @@ namespace Fussballteam.Services
                 return true;
             }
             return false;
-
         }
+
+        public void Writer2(ExcelPackage package, int i, int ii)
+        {
+            ExcelWorksheet ws = package.Workbook.Worksheets["Inputs"];            
+            ws.Cells["C3"].Value = i;
+            ws.Cells["C4"].Value = ii;
+            package.Save();
+            
+        }
+
+        public string Reader2(ExcelPackage package)
+        {
+            ExcelWorksheet ws = package.Workbook.Worksheets["Outputs"];
+            var ii = (ws.Cells["C3"].Value);
+            string i = (ii).ToString();
+
+            package.Save();
+
+            return i;  
+                        
+        }
+
     }
 }
 
