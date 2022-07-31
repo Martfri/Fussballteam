@@ -4,7 +4,7 @@ The aim of this VT is to create a web application based on the MVC architecture 
 
 # Usage
 
-- Open release v1.1, download "Fussballteam.zip", unzip and start the exe file (Windows) to start the web application.
+- Open the final release, download "Fussballteam.zip", unzip and start the exe file (Windows) to start the web application.
 - Login with different users to work with their corresponding data. Each User is assigned an excel sheet. For newly registered users there needs to be an manaual set up of a new sheet according to the template. 
 - Existing Users: Liverpool@localhost.com (Password: Liver-pool9)
 Chelsea@localhost.com (Password: Chel-sea9)
