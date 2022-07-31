@@ -1,4 +1,5 @@
-﻿@model Fussballteam.Models.PlayerModel
+﻿@page
+@model Fussballteam.Models.PlayerModel
 
 <!-- Main content -->
 <div class="container align-content-center">
@@ -11,6 +12,7 @@
     <!-- /.box-header -->
     <!-- form start -->
     <form class="form-horizontal" method="post" action="UpdatePlayer">
+        @Html.AntiForgeryToken()
         <div class="box-body">
         <div class="form-group">
             <label for="inputEmail3" class="col-sm-2 control-label">Name</label>

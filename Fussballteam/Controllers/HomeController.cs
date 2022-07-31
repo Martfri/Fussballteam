@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Fussballteam.Services;
 using OfficeOpenXml;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Fussballteam.Controllers
 {
@@ -14,7 +15,7 @@ namespace Fussballteam.Controllers
         private ExcelPackage package;
         private List<PlayerModel> players = new List<PlayerModel>();
         private ExcelService Excel = new ExcelService();
-        private String? UserName;
+        private String? UserEmail;
 
         public HomeController(ILogger<HomeController> logger)
         {
@@ -24,28 +25,33 @@ namespace Fussballteam.Controllers
             package = new ExcelPackage(path: fileinfo);            
         }
 
+        
+        [Authorize]
         [HttpGet]
         public IActionResult Index(IFormCollection form)
         {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            players = Excel.Reader(package, UserName);
+            UserEmail = User.FindFirstValue(ClaimTypes.Email);
+            players = Excel.Reader(package, UserEmail);
 
             return View(players);
         }
 
+        [Authorize]
         [HttpGet]
         public IActionResult Statistics()
         {         
             return View();
         }
+
         
+        [Authorize]
         public IActionResult check(string button)
         {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            var salaries = Excel.AverageSalary(package, UserName);
-            var age = Excel.AverageAge(package, UserName);
-            var highestSalary = Excel.highestSalary(package, UserName);
-            var lowestSalary = Excel.lowestSalary(package, UserName);
+            UserEmail = User.FindFirstValue(ClaimTypes.Email);
+            var salaries = Excel.AverageSalary(package, UserEmail);
+            var age = Excel.AverageAge(package, UserEmail);
+            var highestSalary = Excel.highestSalary(package, UserEmail);
+            var lowestSalary = Excel.lowestSalary(package, UserEmail);
 
             if (button == "Get Average Salary")
             {
@@ -77,11 +83,12 @@ namespace Fussballteam.Controllers
             return RedirectToAction("Statistics");
         }
 
+        [Authorize]
         [HttpGet]
         public IActionResult Visualizations()
         {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            players = Excel.Reader(package, UserName);
+            UserEmail = User.FindFirstValue(ClaimTypes.Email);
+            players = Excel.Reader(package, UserEmail);
             DashboardModel dashboard = new DashboardModel();
 
             dashboard.Goalkeepers_count = players.Where(c => c.Position == "Goalkeeper").Count();

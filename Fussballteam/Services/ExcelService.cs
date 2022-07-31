@@ -2,20 +2,18 @@
 using Fussballteam.Models;
 
 namespace Fussballteam.Services
-{
-    
+{    
     class ExcelService
     {
         private List<PlayerModel> players = new List<PlayerModel>();
-                
+
         public List<PlayerModel> Reader(ExcelPackage package, String UserName)
         {
             ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
             if (ws != null)
             {
                 PlayerModel player;
-                int row = 5;
-                do
+                for (int row = 5; row <= 53; row++)
                 {
                     player = new PlayerModel
                     {
@@ -29,10 +27,11 @@ namespace Fussballteam.Services
                     {
                         players.Add(player);
                     }
-
-                    row++;
-
-                } while (player.isValid());
+                }                
+            }
+            else
+            {
+                throw new Exception("Excel sheet needs to be named after User email");
             }
             return players;
         }
@@ -95,21 +94,25 @@ namespace Fussballteam.Services
 
         public int FindFirstEmptyRow(ExcelPackage package, String UserName)
         {
-            int row = -1;
             ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
-            if (ws != null)
-            {
-                row = 5;
-
-                do
+            int row;
+            for (row = 5; row <= 53; row++)
                 {
+                    if (ws.Cells[row, 1].Value != null)
                     {
-                        row++;
-                    };
-
-                } while ((ws.Cells[row, 1].Value != null));
+                        continue;
+                    }
+                    else break;
+                }
+            
+            if ((row == 53) && (ws.Cells[53, 1].Value != null))
+            {
+                return -1;
             }
-            return row;
+            else
+            {
+                return row;
+            }
         }
 
         public void Writer(ExcelPackage package, String UserName, string name, string position, string age, string salary, int row)
@@ -121,28 +124,36 @@ namespace Fussballteam.Services
                 ws.Cells[row, 2].Value = position;
                 ws.Cells[row, 3].Value = age;
                 ws.Cells[row, 5].Value = salary;
-
                 package.Save();
+            }
+            else
+            {
+                throw new Exception("Excel sheet needs to be named after User email");
             }
         }
 
         public int FindRowOfPlayer(ExcelPackage package, String UserName, string name)
         {
-            int row = -1;
+            int row;
             ExcelWorksheet ws = package.Workbook.Worksheets[UserName];
-            if (ws != null)
-            {
-                row = 5;
 
-                do
+            for (row = 5; row <= 53; row++)
                 {
+                    if ((ws.Cells[row, 1].Value ?? string.Empty).ToString().Trim() != name)
                     {
-                        row++;
-                    };
-
-                } while ((ws.Cells[row, 1].Value ?? string.Empty).ToString().Trim() != name);
+                        continue;
+                    }
+                    else break;
+                }
+            
+            if ((row == 53) && (ws.Cells[row, 1].Value != name))
+            {
+                return -1;
             }
-            return row;
+            else
+            {
+                return row;
+            }
         }
 
         public bool DeletePlayer(ExcelPackage package, String UserName, int row)
@@ -154,7 +165,6 @@ namespace Fussballteam.Services
                 ws.Cells[row, 2].Value = null;
                 ws.Cells[row, 3].Value = null;
                 ws.Cells[row, 5].Value = null;
-
                 package.Save();
 
                 return true;
@@ -167,8 +177,7 @@ namespace Fussballteam.Services
             ExcelWorksheet ws = package.Workbook.Worksheets["Inputs"];            
             ws.Cells["C3"].Value = i;
             ws.Cells["C4"].Value = ii;
-            package.Save();
-            
+            package.Save();            
         }
 
         public string Reader2(ExcelPackage package)
@@ -176,13 +185,10 @@ namespace Fussballteam.Services
             ExcelWorksheet ws = package.Workbook.Worksheets["Outputs"];
             var ii = (ws.Cells["C3"].Value);
             string i = (ii).ToString();
-
             package.Save();
 
-            return i;  
-                        
+            return i;                          
         }
-
     }
 }
 

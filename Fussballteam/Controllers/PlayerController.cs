@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Fussballteam.Services;
 using OfficeOpenXml;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Fussballteam.Controllers
 {
@@ -13,7 +14,7 @@ namespace Fussballteam.Controllers
         private ExcelPackage package;
         private List<PlayerModel> players = new List<PlayerModel>();
         private ExcelService Excel = new ExcelService();
-        private String? UserName;
+        private String? UserEmail;
 
         public PlayerController(ILogger<HomeController> logger)
         {
@@ -24,14 +25,16 @@ namespace Fussballteam.Controllers
             package = new ExcelPackage(path: this.fileinfo);
         }
 
+        [Authorize]
         [HttpGet]
         public ActionResult DeletePlayer()
         {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            players = Excel.Reader(package, UserName);
+            UserEmail = User.FindFirstValue(ClaimTypes.Email);
+            players = Excel.Reader(package, UserEmail);
             return View(players);
         }
 
+        [Authorize]
         [HttpGet]
         public ActionResult CreatePlayer()
         {
@@ -39,24 +42,35 @@ namespace Fussballteam.Controllers
             return View(player);
         }
 
+        [ValidateAntiForgeryToken]
+        [Authorize]
         [HttpPost]
         public ActionResult CreatePlayer(string Name, string Position, string Age, string Salary)
         {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            int row = Excel.FindFirstEmptyRow(package, UserName);
-            Excel.Writer(package, UserName, Name, Position, Age, Salary, row);
+            UserEmail = User.FindFirstValue(ClaimTypes.Email);
+            int row = Excel.FindFirstEmptyRow(package, UserEmail);
+
+            if (row == -1)
+            {
+                throw new Exception("Player list is full");
+            }
+            else
+            {
+                Excel.Writer(package, UserEmail, Name, Position, Age, Salary, row);
+            }
 
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
+        [Authorize]
         [HttpPost]
         public bool Delete(string name)
         {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
+            UserEmail = User.FindFirstValue(ClaimTypes.Email);
             try
             {
-                int row = Excel.FindRowOfPlayer(package, UserName, name);
-                Excel.DeletePlayer(package, UserName, row);
+                int row = Excel.FindRowOfPlayer(package, UserEmail, name);
+                Excel.DeletePlayer(package, UserEmail, row);
                 return true;
             }
             catch (System.Exception)
@@ -65,19 +79,29 @@ namespace Fussballteam.Controllers
             }
         }
 
+        [Authorize]
         [HttpGet]
         public ActionResult Update()
         {
             return View();
         }
 
+        [ValidateAntiForgeryToken]
+        [Authorize]
         [HttpPost]
         public ActionResult UpdatePlayer(PlayerModel player)
         {
-            UserName = User.FindFirstValue(ClaimTypes.Email);
-            players = Excel.Reader(package, UserName);
-            int row = Excel.FindRowOfPlayer(package, UserName, player.Name);
-            Excel.Writer(package, UserName, player.Name, player.Position, player.Age, player.Salary, row);
+            UserEmail = User.FindFirstValue(ClaimTypes.Email);
+            players = Excel.Reader(package, UserEmail);
+            int row = Excel.FindRowOfPlayer(package, UserEmail, player.Name);
+            if (row == -1)
+            {
+                throw new Exception("Player does not exist");
+            }
+            else
+            {
+                Excel.Writer(package, UserEmail, player.Name, player.Position, player.Age, player.Salary, row);             
+            }
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
@@ -88,18 +112,17 @@ namespace Fussballteam.Controllers
 
         }
 
+    
         [HttpPost]
-        public string Testfunction([FromBody]Foo data)
+        public string Testfunction([FromBody] Foo data)
         {
             var a = data.a;
-            var b = data.b;        
+            var b = data.b;
             Excel.Writer2(package, a, b);
             string res = Excel.Reader2(package);
 
             return res;
         }
-
-
 
     }
 }

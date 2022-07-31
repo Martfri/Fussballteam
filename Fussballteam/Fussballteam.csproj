@@ -16,11 +16,12 @@
   <ItemGroup>
     <Compile Remove="Controllers\CRUDController.cs" />
     <Compile Remove="Controllers\TeamStatistics.cs" />
-    <Compile Remove="Models\Class.cs" />
     <Compile Remove="Models\ErrorViewModel.cs" />
     <Compile Remove="Models\Startup.cs" />
     <Compile Remove="Models\Visualizations.cs" />
     <Compile Remove="Services\ExcelServiceBase.cs" />
+    <Compile Remove="Views\Player\CreatePlayer.cshtml.cs" />
+    <Compile Remove="Views\Player\CreatePlayer1.cshtml.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -52,6 +53,7 @@
 
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="6.0.4" />
+    <PackageReference Include="HtmlSanitizer" Version="7.1.542" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.7" />
