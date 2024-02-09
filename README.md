@@ -1,4 +1,4 @@
-Automatic generation of web applications from Excel documents
+# Automatic generation of web applications from Excel documents
 
 The aim is to create a web application based on the MVC architecture that can interact with an Excel document that is available as a micro service. The user of the web application is able to call up the micro service by entering the inputs in an input mask. When the service is called, it writes the parameters into predefined fields of the Excel file, calculate the formulas in the file and return predefined cell values as a result and display them in the UI of the web application. On the other hand, changes in the Excel wil be automatically reflected in the UI.
 
